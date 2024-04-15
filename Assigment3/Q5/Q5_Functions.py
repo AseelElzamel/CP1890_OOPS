@@ -18,3 +18,24 @@ def get_quarter(data):
             print('Please enter a valid data!')
             print()
     return quarter
+
+def get_amount():
+    while True:
+
+        amount = float(input('Amount:\t\t\t'))
+        if amount >= 0:
+            return amount
+            break
+        else:
+            print('Please enter a valid amount')
+            print()
+
+def get_year():
+    while True:
+        year = int(input('Year:\t\t\t'))
+        if year > 1900 and year < 2501:
+            return year
+            break
+        else:
+            print('Please enter a year between 1900 and 2500!')
+            print()
