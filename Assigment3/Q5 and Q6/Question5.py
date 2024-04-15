@@ -4,12 +4,15 @@ import csv
 import Q5_Functions as func
 import locale as lc
 import sqlite3
+#Import proper modules for function in the program
+
 
 lc.setlocale(lc.LC_ALL, 'en_ca')
 DATE_FORMAT = '%Y-%m-%d'
 DB_FILE = 'Sales_Data.sqlite'
 conn = sqlite3.connect(DB_FILE)
 c = conn.cursor()
+#Set locale, date format, Database file name, and opens connection
 
 
 def close():
@@ -18,15 +21,20 @@ def close():
 
 @dataclass
 class Region:
+    """
+    Class to represent a region code, and the name related
+    """
     code:str
     name:str
 
 
 @dataclass
 class Regions:
+    #Instantiates with an empty list attribute
     regions = []
 
     def __post_init__(self):
+        #Post intializing reads available regions from the database and appends it to the list
         c.execute('Select * from Region;')
         valid_regions = c.fetchall()
         for region in valid_regions:
@@ -34,6 +42,7 @@ class Regions:
 
 
     def add_region(self,code,name):
+        #adds a region object to the regions list and to the database
         new_region = Region(code, name.title())
 
         region_codes = []
@@ -47,10 +56,13 @@ class Regions:
             conn.commit()
 
     def valid_regions(self):
+        #prints the valid region codes for data entry
         print('Valid Regions: ', end='')
         for region in self.regions:
             print(region.code, end=', ')
+
     def get_region(self,code):
+        #gets a region by the provided region code
         num = 0
         for region in self.regions:
             if region.code == code:
@@ -64,20 +76,25 @@ class Regions:
 
 @dataclass
 class File:
+    #Class for storing a file
     fileName: str = ''
     region: object = None
     __nameConv = '.csv'
 
     def get_code(self):
+        #gets region code of the region object
         return self.region.code
 
     def __post_init__(self):
+        #post initializing gets a region for the region object attribute
         self.region = Regions().get_region(self.region)
 
     def name_conv(self):
+        #returns naming convention
         return self.__nameConv
 
     def validate_file(self):
+        #Validates the file to make sure it exists and if it has already been added to the DB
         try:
             with open(f"{self.fileName}{self.__nameConv}") as csvfile:
                 sales_data = csv.reader(csvfile)
@@ -94,24 +111,23 @@ class File:
 
 @dataclass
 class DailySales:
+    #Daily sales class used for storing proper data for a daily sales record
     def __init__(self,sale_id,amount,date,region):
         self.id = sale_id
         self.amount = amount
         try:
+            #tries to convert received attributes into proper data format
             self.date = datetime.strptime(date, DATE_FORMAT).date()
             month = datetime.strptime(date, DATE_FORMAT).month
             self.region = Regions().get_region(region)
             self.quarter = func.get_quarter(int(month))
         except Exception:
-
-            print(self.amount)
-            print(self.date)
-            print(self.region)
-            print(self.quarter)
+            #Prompts user upon error
             print("Daily sales data not added")
 
 
     def conv_list(self):
+        #Converts data to list for CSV file (not used in DB iteration of program)
         amount = str(self.amount)
         date = datetime.strftime(self.date, DATE_FORMAT)
         region = self.region
@@ -120,6 +136,7 @@ class DailySales:
         return sales_data
 
     def from_db(self, date, region):
+        #Returns a DailySales object based on a date and region parameter
         query = '''SELECT id FROM sales WHERE salesDate = (?) and region = (?);'''
         try:
             c.execute(query, (date, region,))
@@ -132,11 +149,13 @@ class DailySales:
 
 @dataclass
 class SalesList:
+    #Intstantiates with a empty list attribute and attribute to signify badData
     dSalesList = []
     badData = False
 
 
     def __post_init__(self):
+        #Post initializing reads the salesData from the DB into the sales list as Daily Sales objects
         query = 'SELECT * FROM sales; '
         c.execute(query)
         results = c.fetchall()
@@ -146,6 +165,7 @@ class SalesList:
 
 
     def addSales(self):
+        #Adds sales data to the DB after proper validation
         while True:
             try:
                 amount = float(input("Enter sales amount: "))
@@ -192,16 +212,19 @@ class SalesList:
 
 
     def retr_fr_index(self, i):
+        #Retrieves an object from the sales list by the index
         try:
             return self.dSalesList[i]
         except IndexError:
             return None
 
     def add_sl(self, sales_list):
+        #Adds a SalesList object to the current sales list
         for obj in sales_list:
             self.dSalesList.append(obj)
 
     def list_items(self):
+        #returns the amount of object in the list
         return len(self.dSalesList)
 
 
@@ -225,7 +248,8 @@ def display_menu():
 
 
 
-def import_file(SALES):
+def import_file():
+    #Imports validated csv file and after proper validation, and inserts the data into the DB
     file = input("Enter file name: ")
     file_obj = File(file)
     test = file_obj.validate_file()
@@ -240,7 +264,6 @@ def import_file(SALES):
                 query = '''INSERT INTO Sales (amount, salesDate, region) Values (?, ?, ?)'''
                 c.execute(query, (amount, date, region))
                 conn.commit()
-                # SALES.append(DailySales( amount, date, region))
             print("File imported successfully.")
     elif test == False:
         print("File could not be imported, check name.")
@@ -248,6 +271,7 @@ def import_file(SALES):
 
 
 def view(SALES):
+    #Displays a formatted view of the SalesData from the DB
     if len(SALES) == 0:
         print('No Sales to view! Import first!')
         print()
@@ -268,6 +292,7 @@ def view(SALES):
         print()
 
 def main():
+    #Main function putting each piece in collaboration to run the program in proper fashion
     display_title()
     display_menu()
 
@@ -282,7 +307,7 @@ def main():
         elif cmd == 'add':
             SALES.addSales()
         elif cmd == 'import':
-            import_file(sales_list)
+            import_file()
         elif cmd == 'menu':
             display_menu()
         elif cmd == 'exit':
