@@ -1,7 +1,7 @@
 import Question5 as q5
 import tkinter as tk
 from tkinter import ttk,messagebox
-from dataclasses import dataclass
+
 padding = '5 5 5 5'
 EditSalesData = tk.Tk()
 EditSalesData.title('Edit Sales Data')
