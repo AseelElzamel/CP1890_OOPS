@@ -130,7 +130,6 @@ class DailySales:
 
 
 
-
 @dataclass
 class SalesList:
     dSalesList = []
