@@ -1,7 +1,8 @@
 import Question5 as q5
 import tkinter as tk
 from tkinter import ttk,messagebox
-
+def get_amount():
+    amount = entry
 
 padding = '5 5 5 5'
 EditSalesData = tk.Tk()
